@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>Controle de Fiado</title>
+
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #ede9fe; /* roxo suave */
+  background: #ede9fe;
   margin: 0;
   padding: 0;
 }
@@ -20,10 +21,7 @@ body {
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
+h2 { text-align: center; }
 
 .form {
   display: flex;
@@ -34,8 +32,6 @@ h2 {
 .form input {
   flex: 1;
   padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
 }
 
 .form button {
@@ -47,14 +43,7 @@ h2 {
   cursor: pointer;
 }
 
-.form button:hover {
-  background: #6d28d9;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
+ul { list-style: none; padding: 0; }
 
 li {
   background: #f5f3ff;
@@ -66,15 +55,6 @@ li {
   align-items: center;
 }
 
-.cliente {
-  font-weight: bold;
-}
-
-.produto {
-  font-size: 0.9em;
-  color: #555;
-}
-
 .excluir {
   background: #ef4444;
   border: none;
@@ -82,10 +62,6 @@ li {
   padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.excluir:hover {
-  background: #dc2626;
 }
 </style>
 </head>
@@ -97,59 +73,72 @@ li {
   <div class="form">
     <input id="nome" placeholder="Nome do cliente">
     <input id="produto" placeholder="Produto">
-    <button onclick="salvar()">Adicionar</button>
+    <button id="btnSalvar">Adicionar</button>
   </div>
 
   <ul id="lista"></ul>
 </div>
 
-<script>
-let dados = JSON.parse(localStorage.getItem("fiados")) || [];
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-function salvar() {
-  let nome = document.getElementById("nome").value;
-  let produto = document.getElementById("produto").value;
+const firebaseConfig = {
+  apiKey: "AIzaSyCK-ErMcHNHT_BpfBQTPS-xuo3c2gUXpjQ",
+  authDomain: "controle-fiado-dfb6c.firebaseapp.com",
+  projectId: "controle-fiado-dfb6c",
+  storageBucket: "controle-fiado-dfb6c.firebasestorage.app",
+  messagingSenderId: "730584046873",
+  appId: "1:730584046873:web:2d40814ee81eb03d52f988"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const nomeInput = document.getElementById("nome");
+const produtoInput = document.getElementById("produto");
+const lista = document.getElementById("lista");
+const btnSalvar = document.getElementById("btnSalvar");
+
+btnSalvar.onclick = async () => {
+  const nome = nomeInput.value.trim();
+  const produto = produtoInput.value.trim();
 
   if (!nome || !produto) {
     alert("Preencha todos os campos!");
     return;
   }
 
-  dados.push({ nome, produto });
-  localStorage.setItem("fiados", JSON.stringify(dados));
+  await addDoc(collection(db, "fiados"), { nome, produto });
 
-  document.getElementById("nome").value = "";
-  document.getElementById("produto").value = "";
+  nomeInput.value = "";
+  produtoInput.value = "";
+};
 
-  mostrar();
-}
+function carregar() {
+  onSnapshot(collection(db, "fiados"), (snapshot) => {
+    lista.innerHTML = "";
+    snapshot.forEach((docu) => {
+      const d = docu.data();
 
-function mostrar() {
-  let lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  dados.forEach((d, i) => {
-    lista.innerHTML += `
-      <li>
+      const li = document.createElement("li");
+      li.innerHTML = `
         <div>
-          <div class="cliente">${d.nome}</div>
-          <div class="produto">${d.produto}</div>
+          <b>${d.nome}</b><br>${d.produto}
         </div>
-        <button class="excluir" onclick="excluir(${i})">Excluir</button>
-      </li>
-    `;
+        <button class="excluir">Excluir</button>
+      `;
+
+      li.querySelector("button").onclick = async () => {
+        await deleteDoc(doc(db, "fiados", docu.id));
+      };
+
+      lista.appendChild(li);
+    });
   });
 }
 
-function excluir(i) {
-  if (!confirm("Deseja excluir este registro?")) return;
-
-  dados.splice(i, 1);
-  localStorage.setItem("fiados", JSON.stringify(dados));
-  mostrar();
-}
-
-mostrar();
+carregar();
 </script>
 
 </body>
