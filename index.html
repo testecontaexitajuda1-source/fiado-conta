@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Controle de Fiado</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #ede9fe; /* roxo suave */
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.form button {
+  padding: 10px 15px;
+  border: none;
+  background: #7c3aed;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.form button:hover {
+  background: #6d28d9;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: #f5f3ff;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cliente {
+  font-weight: bold;
+}
+
+.produto {
+  font-size: 0.9em;
+  color: #555;
+}
+
+.excluir {
+  background: #ef4444;
+  border: none;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.excluir:hover {
+  background: #dc2626;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🧾 Controle de Fiado</h2>
+
+  <div class="form">
+    <input id="nome" placeholder="Nome do cliente">
+    <input id="produto" placeholder="Produto">
+    <button onclick="salvar()">Adicionar</button>
+  </div>
+
+  <ul id="lista"></ul>
+</div>
+
+<script>
+let dados = JSON.parse(localStorage.getItem("fiados")) || [];
+
+function salvar() {
+  let nome = document.getElementById("nome").value;
+  let produto = document.getElementById("produto").value;
+
+  if (!nome || !produto) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  dados.push({ nome, produto });
+  localStorage.setItem("fiados", JSON.stringify(dados));
+
+  document.getElementById("nome").value = "";
+  document.getElementById("produto").value = "";
+
+  mostrar();
+}
+
+function mostrar() {
+  let lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  dados.forEach((d, i) => {
+    lista.innerHTML += `
+      <li>
+        <div>
+          <div class="cliente">${d.nome}</div>
+          <div class="produto">${d.produto}</div>
+        </div>
+        <button class="excluir" onclick="excluir(${i})">Excluir</button>
+      </li>
+    `;
+  });
+}
+
+function excluir(i) {
+  if (!confirm("Deseja excluir este registro?")) return;
+
+  dados.splice(i, 1);
+  localStorage.setItem("fiados", JSON.stringify(dados));
+  mostrar();
+}
+
+mostrar();
+</script>
+
+</body>
+</html>
